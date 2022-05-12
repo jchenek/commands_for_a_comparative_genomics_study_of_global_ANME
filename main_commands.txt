@@ -22,7 +22,6 @@ samtools index <path/to/sorted_bam_file> <sorted_bam_file.bai>
 #get samtools_depth file
 samtools depth <path/to/sorted_bam_file> > <name_of_samtools_depth_file>
 
-
 ##genmic binning using metabat2
 #get depth file for metabat2
 jgi_summarize_bam_contig_depths --outputDepth <name_of_depth_file> <path/to/*sorted_bam>
