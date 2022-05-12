@@ -1,0 +1,76 @@
+###commands used in study 'Genomic insights into niche partitioning across sediment depth among anaerobic methane-oxidizing archaea in global methane seeps'
+
+##clean raw fq data using trimmomatic
+trimmomatic PE -threads 64 -phred33 <path/to/fq1> <path/to/fq2> -baseout <header_of_output_file> <path/to/TruSeq3-PE-2.fa>:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 TOPHRED33
+
+##metagenome assembly using megahit 
+megahit -1 <path/to/fq1> -2 <path/to/fq2> --k-min 27 --k-max 147 --k-step 12 -t 64 -o <name_of_output_file>
+
+##get sam file using bowtie2
+#build bowtie2 index
+bowtie2-build --thread 64 <path/to/assembly> <name_of_index>
+#bowtie2 mapping
+bowtie2 -p 64 -x <name_of_index> -1 <path/to/fq1> -2 <path/to/fq2> -S <name_of_sam_file>
+
+##get binner_depth file using samtools
+#transfer sam to bam
+#samtools view -b -S <path/to/sam_file> > <name_of_bam_file>
+#sort bam
+samtools sort --thread 64 <path/to/bam_file> > <name_of_sorted_bam_file>
+#index bam files
+samtools index <path/to/sorted_bam_file> <sorted_bam_file.bai>
+#get samtools_depth file
+samtools depth <path/to/sorted_bam_file> > <name_of_samtools_depth_file>
+
+
+##genmic binning using metabat2
+#get depth file for metabat2
+jgi_summarize_bam_contig_depths --outputDepth <name_of_depth_file> <path/to/*sorted_bam>
+#binning
+metabat2 -i <path/to/assembly> -a <path/to/depth_file> -o bins_dir/bin -t 64 -m 1500
+
+##genmic binning using concoct
+cut_up_fasta.py <path/to/assembly> -c 10000 -o 0 --merge_last -b contigs_10k.bed > contigs_10k.fa
+concoct_coverage_table.py contigs_10k.bed <path/to/*sorted_bam> > coverage_table.tsv
+concoct --coverage_file coverage_table.tsv --composition_file contigs_10k.fa -b concoct_output/ -l 1500 -t 64
+merge_cutup_clustering.py concoct_output/clustering_gt1500.csv > concoct_output/clustering_merged.csv
+mkdir concoct_output/bins
+extract_fasta_bins.py <path/to/assembly> concoct_output/clustering_merged.csv --output_path concoct_output/bins
+
+##genmic binning using maxbin2
+#transfer samtools_depth to binner_depth
+#scripts 'samtools_depth_to_binner_depth.pl' is available in github
+perl samtools_depth_to_binner_depth.pl <path/to/samtools_depth_file> <name_of_binner_depth_file>
+#binning
+run_MaxBin.pl -contig <path/to/assembly> -abund <path/to/samtools_depth_file1> -abund2 <path/to/samtools_depth_file2> -abund3 <path/to/samtools_depth_file3> -out <name_of_output_file> -min_contig_length 1500 -thread 64
+
+##auto-refine using metawrap
+metawrap bin_refinement -o <name_of_output_file> -t 64 -c 50 -A <path/to/concoct_bin_folder> -B <path/to/maxbin2_bin_folder> -C <path/to/metabat2_bin_folder>
+
+##quality information obtain using checkm
+checkm lineage_wf -x fa -t 64 <path/to/bin_folder> <name_of_output_file> > checkm_qa
+
+##taxonomic  information obtain using gtdbtk
+gtdbtk classify_wf -x fa --genome_dir <path/to/bin_folder> --out_dir <name_of_output_file> --cpus 64
+
+##de-replicate using drep
+dRep dereplicate <name_of_output_file> -p 64 -comp 50 -con 10 --P_ani 0.9 --S_ani 0.99 -g <path/to/bin_folder/*.fa>
+
+##gene prediction using prodigal
+prodigal -i <path/to/bin> -o <name_of_gff> -f gff -p meta -a <name_of_cds.faa> -d <name_of_cds.fna>
+
+##gene annotation using diamond
+#make diamond database
+diamond makedb --in <path/to/databse.fa> -d <name_of_diamond_db>
+#annotation
+diamond blastp --db <path/to/diamond_db> --query <path/to/cds.faa> --out <name_of_output_file> --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovhsp scovhsp --sensitive -k 1 -e 1e-20 -c1
+
+##gene annotation using dram
+DRAM.py annotate -i '<path/to/genome_folder/*.fa>' -o annotation
+DRAM.py distill -i annotation/annotations.tsv -o genome_summaries --trna_path annotation/trnas.tsv
+
+##phylogenetic analysis
+#multiple sequence alignment using muscle
+muscle -in <path/to/fa_file> -fastaout <msa_file>
+#construct tree using iqtree
+iqtree -s <msa_file> -m TEST -bb 1000 -nt 64
