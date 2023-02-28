@@ -1,5 +1,5 @@
 # scripts-for-methane-seep-ANME
-scripts for "Genomic insights into niche partitioning across sediment depth among anaerobic methane-oxidizing archaea in global methane seeps"
+You can find scripts and commands used in the article "Genomic insights into niche partitioning across sediment depth among anaerobic methane-oxidizing archaea in global methane seeps" from here.
 
 All data supporting the findings of this study are available within the article and its supplementary information files, or from the corresponding authors upon request. (email: jchenek@connect.ust.hk)
 
