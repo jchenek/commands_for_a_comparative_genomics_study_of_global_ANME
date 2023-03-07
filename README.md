@@ -7,4 +7,3 @@ Metagenomic sequences have been deposited in National Center for Biotechnology I
 All MAGs used in this study have been deposited in National Omics Data Encyclopedia (NODE) under the project number OEP002857.
 
 All bioinformatics commands are available in "main_commands.txt".
-Customized perl scripts are  available in dir "scripts".
