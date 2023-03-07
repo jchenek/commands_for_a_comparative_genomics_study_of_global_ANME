@@ -41,7 +41,7 @@ extract_fasta_bins.py <path/to/assembly> concoct_output/clustering_merged.csv --
 #scripts 'samtools_depth_to_binner_depth.pl' is available in github
 perl samtools_depth_to_binner_depth.pl <path/to/samtools_depth_file> <name_of_binner_depth_file>
 #binning
-run_MaxBin.pl -contig <path/to/assembly> -abund <path/to/samtools_depth_file1> -abund2 <path/to/samtools_depth_file2> -abund3 <path/to/samtools_depth_file3> -out <name_of_output_file> -min_contig_length 1500 -thread 64
+run_MaxBin.pl -contig <path/to/assembly> -abund <path/to/binner_depth_file1> -abund2 <path/to/binner_depth_file2> -abund3 <path/to/binner_depth_file3> -out <name_of_output_file> -min_contig_length 1500 -thread 64
 
 ##auto-refine using metawrap
 metawrap bin_refinement -o <name_of_output_file> -t 64 -c 50 -A <path/to/concoct_bin_folder> -B <path/to/maxbin2_bin_folder> -C <path/to/metabat2_bin_folder>
